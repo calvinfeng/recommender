@@ -8,7 +8,7 @@ RATING_SET = './ml-latest/ratings.csv'
 
 def load_movies():
     movies = dict()
-    movies_csv = open(MOVIE_SET)
+    movies_csv = open(SMALL_MOVIE_SET)
     csv_reader = csv.reader(movies_csv)
     for row in csv_reader:
         if row[0].isdigit():
@@ -16,11 +16,10 @@ def load_movies():
             movie_title = row[1]
             movies[movie_id] = {"title": movie_title}
     load_user_ratings(movies)
-    compute_avg_ratings(movies)
     return movies
 
 def load_user_ratings(movies):
-    ratings_csv = open(RATING_SET)
+    ratings_csv = open(SMALL_RATING_SET)
     csv_reader = csv.reader(ratings_csv)
     for row in csv_reader:
         if row[0].isdigit():
