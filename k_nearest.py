@@ -26,7 +26,7 @@ class User:
             if user_2.ratings.get(movie_id):
                 movies_seen_by_both.append(movie_id)
 
-        if len(movies_seen_by_both) >= 10:
+        if len(movies_seen_by_both) >= 5:
             for movie_id in movies_seen_by_both:
                 rating_1, rating_2 = float(user_1.ratings[movie_id]), float(user_2.ratings[movie_id])
                 user_correlation += (rating_1 - user_1.avg_rating)*(rating_2 - user_2.avg_rating)
@@ -42,12 +42,13 @@ class User:
             return 0
 
 class Movie:
-    def __init__(self, movie_id, movie_title, user_ratings):
+    def __init__(self, movie_id, movie_title, user_ratings, viewers):
         self.id = movie_id
         self.title = movie_title
         self.avg_rating = Movie.compute_avg_ratings(user_ratings)
         self.num_of_ratings = len(user_ratings)
         self.ratings = user_ratings
+        self.viewers = viewers
 
     @staticmethod
     def compute_avg_ratings(user_ratings):
@@ -70,44 +71,55 @@ def quick_sort(movies):
                 right.append(movies[i])
         return quick_sort(left) + [pivot] + quick_sort(right)
 
-# def qs(arr):
-#     if len(arr) <= 1:
-#         return arr
-#     else:
-#         pivot = arr[0]
-#         left, right = [], []
-#         for i in range(1, len(arr)):
-#             if arr[i] <= pivot:
-#                 left.append(arr[i])
-#             else:
-#                 right.append(arr[i])
-#         return qs(left) + [pivot] + qs(right)
-#
-# print qs([9,8,7,6,5,4,3,2,1])
-# users_data = loader.load_users()
-# users = []
-# for user_id in users_data:
-#     users.append(User(user_id, users_data[user_id]))
-# print "Number of users in database: %s \n" % len(users)
-# for i in range(1, len(users)):
-#     if User.sim(users[0], users[i]) > 0.75:
-#         print "User 1 and User %s are similar: %s" % (i + 1, User.sim(users[0], users[i]))
-#         movies_seen_by_both = []
-#         user_1_ratings, user_2_ratings = [], []
-#         for movie_id in users[0].ratings:
-#             if users[i].ratings.get(movie_id):
-#                 movies_seen_by_both.append(movie_id)
-#                 user_1_ratings.append(users[0].ratings[movie_id])
-#                 user_2_ratings.append(users[i].ratings[movie_id])
-#         print tabulate([user_1_ratings, user_2_ratings],headers = movies_seen_by_both)
-#         print "\n"
+def predict_rating(user, movie, users_data):
+    neighbors = movie.viewers
+    score = 0
+    sim_norm = 0
+    for neighbor_id in neighbors:
+        neighbor = User(neighbor_id, users_data[neighbor_id])
+        sim = User.sim(user, neighbor)
+        if sim != 0:
+            score += sim*(float(neighbor.ratings[movie.id]) - float(neighbor.avg_rating))
+            sim_norm += abs(sim)
+    return user.avg_rating + score/sim_norm
 
 movies_data = loader.load_movies()
+users_data = loader.load_users()
+
 movies = []
 for movie_id in movies_data:
-    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 50:
-        movies.append(Movie(movie_id, movies_data[movie_id]['title'], movies_data[movie_id]['ratings']))
+    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 3000:
+        movies.append(Movie(movie_id, movies_data[movie_id]['title'], movies_data[movie_id]['ratings'], movies_data[movie_id]['viewers']))
+print "Number of movies with significant number of reviews: %s \n" % len(movies)
+# movies = quick_sort(movies)
 
-movies = quick_sort(movies)
+my_ratings = {'2959': 4.5, '58559': 3.5, '2571': 4.5, '79132': 5.0, '2329': 4.0, '92259': 2.0, '5971': 3.0}
+new_user = User(None, my_ratings)
+
 for movie in movies:
-    print "%s has %s stars" % (movie.title, movie.avg_rating)
+    if not new_user.ratings.get(movie.id):
+        p_rating = predict_rating(new_user, movie, users_data)
+        if p_rating > 4:
+            print "Title: %s with Avg: %s, and Pred: %s" % (movie.title, movie.avg_rating, p_rating)
+        else:
+            print "You probably don't like %s, Pred: %s" % (movie.title, p_rating)
+
+
+# for user in users:
+#     if User.sim(new_user, user) > 0.75:
+#         print "New user and user %s are similar: %s" % (user.id, User.sim(new_user, user))
+#         movies_seen_by_both = []
+#         new_user_ratings, user_ratings = [], []
+#         for movie_id in user.ratings:
+#             if new_user.ratings.get(movie_id):
+#                 movies_seen_by_both.append(movie_id)
+#                 new_user_ratings.append(new_user.ratings[movie_id])
+#                 user_ratings.append(user.ratings[movie_id])
+#         print tabulate([user_ratings, new_user_ratings],headers = movies_seen_by_both)
+#         print "\n"
+
+# movies = quick_sort(movies)
+# for i in range(0, 50):
+#     movie = movies[i]
+#     print "%s has %s stars, id: %s" % (movie.title, movie.avg_rating, movie.id)
+# print "Total number of movies %s" % (len(movies))
