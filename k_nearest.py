@@ -88,22 +88,17 @@ users_data = loader.load_users()
 
 movies = []
 for movie_id in movies_data:
-    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 3000:
+    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 50:
         movies.append(Movie(movie_id, movies_data[movie_id]['title'], movies_data[movie_id]['ratings'], movies_data[movie_id]['viewers']))
 print "Number of movies with significant number of reviews: %s \n" % len(movies)
 # movies = quick_sort(movies)
-
 my_ratings = {'2959': 4.5, '58559': 3.5, '2571': 4.5, '79132': 5.0, '2329': 4.0, '92259': 2.0, '5971': 3.0}
 new_user = User(None, my_ratings)
-
+pdb.set_trace()
 for movie in movies:
     if not new_user.ratings.get(movie.id):
         p_rating = predict_rating(new_user, movie, users_data)
-        if p_rating > 4:
-            print "Title: %s with Avg: %s, and Pred: %s" % (movie.title, movie.avg_rating, p_rating)
-        else:
-            print "You probably don't like %s, Pred: %s" % (movie.title, p_rating)
-
+        print "Title: %s with Avg: %s, and Pred: %s" % (movie.title, movie.avg_rating, p_rating)
 
 # for user in users:
 #     if User.sim(new_user, user) > 0.75:
