@@ -78,43 +78,49 @@ def predict_rating(user, movie, users_data):
     for neighbor_id in neighbors:
         neighbor = User(neighbor_id, users_data[neighbor_id])
         sim = User.sim(user, neighbor)
-        if sim != 0:
+        if sim > 0.50:
             score += sim*(float(neighbor.ratings[movie.id]) - float(neighbor.avg_rating))
             sim_norm += abs(sim)
-    return user.avg_rating + score/sim_norm
+    if sim_norm == 0:
+        return "Insufficient information"
+    else:
+        return user.avg_rating + score/sim_norm
 
 movies_data = loader.load_movies()
-users_data = loader.load_users()
+train_set_users = loader.load_users(1, 10000)
+test_set_users = loader.load_users(10001, 10101)
 
 movies = []
 for movie_id in movies_data:
-    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 50:
+    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 500:
         movies.append(Movie(movie_id, movies_data[movie_id]['title'], movies_data[movie_id]['ratings'], movies_data[movie_id]['viewers']))
 print "Number of movies with significant number of reviews: %s \n" % len(movies)
-# movies = quick_sort(movies)
-my_ratings = {'2959': 4.5, '58559': 3.5, '2571': 4.5, '79132': 5.0, '2329': 4.0, '92259': 2.0, '5971': 3.0}
-new_user = User(None, my_ratings)
-pdb.set_trace()
+movies = quick_sort(movies)
+
+prediction_count = 0
+accurate_count = 0
 for movie in movies:
-    if not new_user.ratings.get(movie.id):
-        p_rating = predict_rating(new_user, movie, users_data)
-        print "Title: %s with Avg: %s, and Pred: %s" % (movie.title, movie.avg_rating, p_rating)
+    print "Title: %s" % (movie.title)
+    for user_id in test_set_users:
+        if test_set_users[user_id].get(movie.id) and len(test_set_users[user_id]) > 5:
+            actual_rating = test_set_users[user_id].pop(movie.id)
+            test_user = User(user_id, test_set_users[user_id])
+            predicted_rating = predict_rating(test_user, movie, train_set_users)
+            print "User #%s has rated %s movies: predicted rating = %s, actual rating = %s" % (user_id, len(test_user.ratings) + 1, predicted_rating, actual_rating)
+            if isinstance(predicted_rating, float):
+                prediction_count += 1
+                if abs(float(actual_rating) - predicted_rating) <= 0.50:
+                    accurate_count += 1
 
-# for user in users:
-#     if User.sim(new_user, user) > 0.75:
-#         print "New user and user %s are similar: %s" % (user.id, User.sim(new_user, user))
-#         movies_seen_by_both = []
-#         new_user_ratings, user_ratings = [], []
-#         for movie_id in user.ratings:
-#             if new_user.ratings.get(movie_id):
-#                 movies_seen_by_both.append(movie_id)
-#                 new_user_ratings.append(new_user.ratings[movie_id])
-#                 user_ratings.append(user.ratings[movie_id])
-#         print tabulate([user_ratings, new_user_ratings],headers = movies_seen_by_both)
-#         print "\n"
 
-# movies = quick_sort(movies)
-# for i in range(0, 50):
-#     movie = movies[i]
-#     print "%s has %s stars, id: %s" % (movie.title, movie.avg_rating, movie.id)
-# print "Total number of movies %s" % (len(movies))
+print "Total number of predictions: %s" % prediction_count
+print "Number of prediction with good accuracy: %s" % accurate_count
+
+
+
+# my_ratings = {'2959': 4.5, '58559': 3.5, '2571': 4.5, '79132': 5.0, '2329': 4.0, '92259': 2.0, '5971': 3.0}
+# new_user = User(None, my_ratings)
+# for movie in movies:
+#     if not new_user.ratings.get(movie.id):
+#         p_rating = predict_rating(new_user, movie, users_data)
+#         print "Title: %s with Avg: %s, and Pred: %s" % (movie.title, movie.avg_rating, p_rating)
