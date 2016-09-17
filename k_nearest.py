@@ -58,19 +58,6 @@ class Movie:
         avg_rating = avg_rating/len(user_ratings)
         return avg_rating
 
-def quick_sort(movies):
-    if len(movies) <= 1:
-        return movies
-    else:
-        pivot = movies[0]
-        left, right = [], []
-        for i in range(1, len(movies)):
-            if movies[i].avg_rating > pivot.avg_rating:
-                left.append(movies[i])
-            else:
-                right.append(movies[i])
-        return quick_sort(left) + [pivot] + quick_sort(right)
-
 def predict_rating(user, movie, users_data):
     neighbors = movie.viewers
     score = 0
@@ -85,37 +72,6 @@ def predict_rating(user, movie, users_data):
         return "Insufficient information"
     else:
         return user.avg_rating + score/sim_norm
-
-movies_data = loader.load_movies()
-train_set_users = loader.load_users(1, 10000)
-test_set_users = loader.load_users(10001, 10101)
-
-movies = []
-for movie_id in movies_data:
-    if movies_data[movie_id].get("viewers") and len(movies_data[movie_id]['viewers']) > 500:
-        movies.append(Movie(movie_id, movies_data[movie_id]['title'], movies_data[movie_id]['ratings'], movies_data[movie_id]['viewers']))
-print "Number of movies with significant number of reviews: %s \n" % len(movies)
-movies = quick_sort(movies)
-
-prediction_count = 0
-accurate_count = 0
-for movie in movies:
-    print "Title: %s" % (movie.title)
-    for user_id in test_set_users:
-        if test_set_users[user_id].get(movie.id) and len(test_set_users[user_id]) > 5:
-            actual_rating = test_set_users[user_id].pop(movie.id)
-            test_user = User(user_id, test_set_users[user_id])
-            predicted_rating = predict_rating(test_user, movie, train_set_users)
-            print "User #%s has rated %s movies: predicted rating = %s, actual rating = %s" % (user_id, len(test_user.ratings) + 1, predicted_rating, actual_rating)
-            if isinstance(predicted_rating, float):
-                prediction_count += 1
-                if abs(float(actual_rating) - predicted_rating) <= 0.50:
-                    accurate_count += 1
-
-
-print "Total number of predictions: %s" % prediction_count
-print "Number of prediction with good accuracy: %s" % accurate_count
-
 
 
 # my_ratings = {'2959': 4.5, '58559': 3.5, '2571': 4.5, '79132': 5.0, '2329': 4.0, '92259': 2.0, '5971': 3.0}
