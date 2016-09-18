@@ -51,7 +51,7 @@ def reduce_links_file(movie_set):
     write_count = 0
     for row in csv_reader:
         if row[0].isdigit() and row[0] in movie_set:
-            csv_writer.writerow((row[0], row[1], row[2]))
+            csv_writer.writerow((row[0], "tt" + row[1], row[2]))
             write_count += 1
     print "Wrote %s items to links.csv" % write_count
 
