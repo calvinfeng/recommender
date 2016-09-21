@@ -53,12 +53,12 @@ def reduce_ratings_file(movie_set):
 
 full_movies = csv_loader.load_movies(MOVIE_SET, RATING_SET)
 full_users = csv_loader.load_users(RATING_SET)
-
 movie_id_set = set()
 for i in range(1, len(full_movies)):
     movie_id = str(i)
-    if len(full_movies[movie_id]["ratings"]) >= 50 and len(full_movies[movie_id]["ratings"]) <= 100:
-        movie_id_set.add(movie_id)
+    if full_movies.get(movie_id):
+        if len(full_movies[movie_id]["ratings"]) >= 1000 and len(full_movies[movie_id]["ratings"]) <= 5000:
+            movie_id_set.add(movie_id)
     if len(movie_id_set) == 10:
          break
 
