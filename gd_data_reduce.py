@@ -6,6 +6,39 @@ MOVIE_SET = './ml-latest/movies.csv'
 RATING_SET = './ml-latest/ratings.csv'
 LINKS_SET = './ml-latest/links.csv'
 
+def create_ratings_train_set(movie_set):
+    csv_reader = csv.reader(open(RATING_SET))
+    csv_writer = csv.writer(open('./gd-10-movies/ratings_train.csv', 'wt'))
+    csv_writer.writerow(('userId', 'movieId', 'rating', 'timestamp'))
+    write_count = 0
+    for row in csv_reader:
+        if row[0].isdigit() and row[1] in movie_set and int(row[0]) < 5000:
+            csv_writer.writerow((row[0], row[1], row[2], row[3]))
+            write_count += 1
+    print "Wrote %s items to ratings_train.csv" % write_count
+
+def create_ratings_test_set(movie_set):
+    csv_reader = csv.reader(open(RATING_SET))
+    # Create a cross validation data set
+    cv_writer = csv.writer(open('./gd-10-movies/ratings_cv.csv', 'wt'))
+    cv_writer.writerow(('userId', 'movieId', 'rating', 'timestamp'))
+    # Create a test data set
+    test_writer = csv.writer(open('./gd-10-movies/ratings_test.csv', 'wt'))
+    test_writer.writerow(('userId', 'movieId', 'rating', 'timestamp'))
+
+    cv_count = 0
+    test_count = 0
+    for row in csv_reader:
+        if row[0].isdigit() and row[1] in movie_set and int(row[0]) >= 5000 and int(row[0]) < 7500:
+            cv_writer.writerow((row[0], row[1], row[2], row[3]))
+            cv_count += 1
+        elif row[0].isdigit() and row[1] in movie_set and int(row[0]) >= 7500 and int(row[0]) < 10000:
+            test_writer.writerow((row[0], row[1], row[2], row[3]))
+            test_count += 1
+
+    print "Wrote %s items to ratings_cv.csv" % cv_count
+    print "Wrote %s items to ratings_test.csv" % test_count
+
 def reduce_movies_file(movie_set):
     movies_csv = open(MOVIE_SET)
     csv_reader = csv.reader(movies_csv)
@@ -57,7 +90,7 @@ movie_id_set = set()
 for i in range(1, len(full_movies)):
     movie_id = str(i)
     if full_movies.get(movie_id):
-        if len(full_movies[movie_id]["ratings"]) >= 1000 and len(full_movies[movie_id]["ratings"]) <= 5000:
+        if len(full_movies[movie_id]["ratings"]) >= 20000:
             movie_id_set.add(movie_id)
     if len(movie_id_set) == 10:
          break
@@ -65,4 +98,5 @@ for i in range(1, len(full_movies)):
 print "Items in movie_id_set: %s" % len(movie_id_set)
 reduce_movies_file(movie_id_set)
 reduce_links_file(movie_id_set)
-reduce_ratings_file(movie_id_set)
+create_ratings_train_set(movie_id_set)
+create_ratings_test_set(movie_id_set)
