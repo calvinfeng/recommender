@@ -11,6 +11,7 @@ def load_movies(movie_file_location, rating_file_location):
             movie_title = row[1]
             movies[movie_id] = {"title": movie_title}
     load_user_ratings(movies, rating_file_location)
+    print "Loaded CSV...number of movies: %s" % len(movies)
     return movies
 
 def load_user_ratings(movies, rating_file_location):
@@ -29,7 +30,7 @@ def load_user_ratings(movies, rating_file_location):
             else:
                 movies[movie_id]["ratings"] = [rating]
                 movies[movie_id]["viewers"] = [user_id]
-    print "Number of ratings: %s" % (number_of_ratings)
+    print "Loaded CSV...number of ratings: %s" % (number_of_ratings)
 
 def load_users(rating_file_location):
     users = dict()
@@ -42,7 +43,7 @@ def load_users(rating_file_location):
                 users[user_id][movie_id] = rating
             else:
                 users[user_id] = {movie_id: rating}
-    print "Number of users: %s" % len(users)
+    print "Loaded CSV...number of users: %s" % len(users)
     return users
 
 def compute_avg_ratings(movies):

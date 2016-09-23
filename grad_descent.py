@@ -9,7 +9,7 @@ class Movie:
         self.id = movie_id
         self.title = title
         self.viewers = viewers
-        self.feature = self.random_init(5)
+        self.feature = self.random_init(14)
 
     def random_init(self, size):
         feature_vector = []
@@ -24,7 +24,7 @@ class User:
     def __init__(self, user_id, movie_ratings):
         self.id = user_id
         self.movie_ratings = movie_ratings
-        self.theta = self.random_init(5)
+        self.theta = self.random_init(14)
 
     def random_init(self, size):
         preference_vector = []
@@ -35,7 +35,7 @@ class User:
 class TestUser:
     def __init__(self, user_id, movie_ratings):
         self.id = user_id
-        self.theta = self.random_init(5)
+        self.theta = self.random_init(14)
         self.process(movie_ratings)
 
     def random_init(self, size):
@@ -101,7 +101,7 @@ def content_based_cost(users, movies, l):
 
     return regularized_term + sq_error
 
-def test_cost(users, movies, l):
+def sq_error(users, movies, l):
     sq_error = 0
     m = 0
     for user_id in users:
@@ -110,16 +110,9 @@ def test_cost(users, movies, l):
             movie = movies[movie_id]
             sq_error += (movie.hypothesis(user) - float(user.hidden_ratings[movie.id]))**2
             m += 1
-    sq_error *= (0.5/m)
+    sq_error = sq_error/m
 
-    regularized_term = 0
-    for user_id in users:
-        user = users[user_id]
-        for k in range(0, len(user.theta)):
-            regularized_term += user.theta[k]**2
-    regularized_term *= (0.5*l/m)
-
-    return regularized_term + sq_error
+    return sq_error
 #===============================================================================
 
 # wrt = with respect to
@@ -158,9 +151,10 @@ def derivative_norm(dj):
     return norm
 #===============================================================================
 def content_based_gd(movies, users, a, l):
-    iteration = 1
+    iteration = 0
     while True:
-        print "Iteration #%s - cost: %s" % (iteration, content_based_cost(users, movies, l))
+        if iteration%100 == 0:
+            print "Iteration #%s - cost: %s" % (iteration, content_based_cost(users, movies, l))
         dj_duser = dict()
         for user_id in users:
             user = users[user_id]
@@ -171,7 +165,8 @@ def content_based_gd(movies, users, a, l):
                     dj_duser[user.id].append(dj_wrt_user_theta_k0(user, movies))
                 else:
                     dj_duser[user.id].append(dj_wrt_user_theta_k(user, movies, l, k))
-        print "Iteration #%s - derivative norm => dj_duser: %s" % (iteration, derivative_norm(dj_duser))
+        if iteration%100 == 0:
+            print "Iteration #%s - derivative norm => dj_duser: %s" % (iteration, derivative_norm(dj_duser))
         for user_id in dj_duser:
             dj_dtheta = dj_duser[user_id]
             user = users[user_id]
@@ -183,11 +178,12 @@ def content_based_gd(movies, users, a, l):
             return True
 
 def gradient_descent(movies, users, a, l):
-    iteration = 1
+    iteration = 0
     movie_count = len(movies)
     user_count = len(users)
     while True:
-        print "Iteration #%s - cost: %s" % (iteration, cost_function(movies, users, l))
+        if iteration%100 == 0:
+            print "Iteration #%s - cost: %s" % (iteration, cost_function(movies, users, l))
         # Compute partial derivatives
         dj_dmovie = dict()
         for movie_id in movies:
@@ -203,7 +199,8 @@ def gradient_descent(movies, users, a, l):
             dj_duser[user.id] = []
             for k in range(0, n):
                 dj_duser[user.id].append(dj_wrt_user_theta_k(user, movies, l, k))
-        print "Iteration #%s - derivative norm => dj_dmovie: %s, dj_duser: %s" % (iteration, derivative_norm(dj_dmovie)/movie_count, derivative_norm(dj_duser)/user_count)
+        if iteration%100 == 0:
+            print "Iteration #%s - derivative norm => dj_dmovie: %s, dj_duser: %s" % (iteration, derivative_norm(dj_dmovie)/movie_count, derivative_norm(dj_duser)/user_count)
         # Apply gradient_descent
         for movie_id in dj_dmovie:
             dj_dx = dj_dmovie[movie_id]
@@ -239,23 +236,32 @@ train_users = dict()
 for user_id in train_set_users:
     train_users[user_id] = User(user_id, train_set_users[user_id])
 
+cv_ratings = 0
 cv_users = dict()
 for user_id in cv_set_users:
     if len(cv_set_users[user_id]) > 5:
         cv_users[user_id] = TestUser(user_id, cv_set_users[user_id])
+        cv_ratings += len(cv_users[user_id].movie_ratings)
 
+test_ratings = 0
 test_users = dict()
 for user_id in test_set_users:
     if len(test_set_users[user_id]) > 5:
         test_users[user_id] = TestUser(user_id, test_set_users[user_id])
+        test_ratings += len(test_users[user_id].movie_ratings)
 
+learning_rate = 0.0008
 regularized_factor = 0.1
-gradient_descent(movies, train_users, 0.0015, regularized_factor)
-content_based_gd(movies, cv_users, 0.0015, regularized_factor)
-content_based_gd(movies, test_users, 0.0015, regularized_factor)
-print "Movie train cost: %s" %cost_function(movies, train_users, regularized_factor)
-print "Train cost: %s" % content_based_cost(cv_users, movies, regularized_factor)
-print "CV cost: %s" % test_cost(cv_users, movies, regularized_factor)
-print "Test cost: %s" % test_cost(test_users, movies, regularized_factor)
+print "Number of CV Ratings: %s, Number of Test Ratings: %s" % (cv_ratings, test_ratings)
+gradient_descent(movies, train_users, learning_rate, regularized_factor)
+
+print "Before training - cv sq. error: %s" % sq_error(cv_users, movies, regularized_factor)
+content_based_gd(movies, cv_users, learning_rate, regularized_factor)
+print "After training - cv sq. error: %s" % sq_error(cv_users, movies, regularized_factor)
+
+print "Before training - test sq. error: %s" % sq_error(test_users, movies, regularized_factor)
+content_based_gd(movies, test_users, learning_rate, regularized_factor)
+print "After training - test sq. error: %s" % sq_error(test_users, movies, regularized_factor)
+
 pdb.set_trace()
 print "Done"
