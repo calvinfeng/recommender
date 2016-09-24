@@ -2,10 +2,6 @@ import csv_loader
 import pdb
 import csv
 
-MOVIE_SET = './ml-latest/movies.csv'
-RATING_SET = './ml-latest/ratings.csv'
-LINKS_SET = './ml-latest/links.csv'
-
 def create_ratings_train_set(movie_set):
     csv_reader = csv.reader(open(RATING_SET))
     csv_writer = csv.writer(open('./gd-10-movies/ratings_train.csv', 'wt'))
@@ -84,8 +80,22 @@ def reduce_ratings_file(movie_set):
 
     print "Wrote %s items to ratings.csv" % write_count
 
-full_movies = csv_loader.load_movies(MOVIE_SET, RATING_SET)
-full_users = csv_loader.load_users(RATING_SET)
+MOVIE_SET = './ml-latest/movies.csv'
+RATING_SET = './ml-latest/ratings.csv'
+LINKS_SET = './ml-latest/links.csv'
+
+knn_movie_set = './knn-10k-users/movies.csv'
+knn_ratings_set = './knn-10k-users/ratings.csv'
+knn_links_set = './knn-10k-users/links.csv'
+
+full_movies = csv_loader.load_movies(knn_movie_set, knn_ratings_set)
+full_users = csv_loader.load_users(knn_ratings_set)
+count = 0
+for movie_id in full_movies:
+    if len(full_movies[movie_id]["ratings"]) > 0 and full_movies[movie_id]["year"] == '2015':
+        count += 1
+        print "Title: %s, number of viewers: %s" % (full_movies[movie_id]["title"],  len(full_movies[movie_id]["ratings"]))
+pdb.set_trace()
 movie_id_set = set()
 for i in range(1, len(full_movies)):
     movie_id = str(i)

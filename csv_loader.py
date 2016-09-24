@@ -9,7 +9,8 @@ def load_movies(movie_file_location, rating_file_location):
         if row[0].isdigit():
             movie_id = row[0]
             movie_title = row[1]
-            movies[movie_id] = {"title": movie_title}
+            movie_year = row[2]
+            movies[movie_id] = {"title": movie_title, "year": movie_year}
     load_user_ratings(movies, rating_file_location)
     print "Loaded CSV...number of movies: %s" % len(movies)
     return movies
