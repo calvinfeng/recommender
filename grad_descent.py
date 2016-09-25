@@ -1,9 +1,10 @@
 import csv_loader as loader
 import numpy
 import pdb
+import math
+import csv
 from random import random
 from random import sample
-import csv
 
 class Movie:
     def __init__(self, movie_id, title, viewers):
@@ -103,7 +104,8 @@ def content_based_cost(users, movies, l):
 
     return regularized_term + sq_error
 
-def sq_error(users, movies, l):
+# Root Mean Squared Error
+def cv_rmse(users, movies):
     sq_error = 0
     m = 0
     for user_id in users:
@@ -112,9 +114,19 @@ def sq_error(users, movies, l):
             movie = movies[movie_id]
             sq_error += (movie.hypothesis(user) - float(user.hidden_ratings[movie.id]))**2
             m += 1
-    sq_error = sq_error/m
+    return math.sqrt(sq_error/m)
 
-    return sq_error
+def train_rmse(users, movies):
+    sq_error = 0
+    m = 0
+    for user_id in users:
+        user = users[user_id]
+        for movie_id in user.movie_ratings:
+            movie = movies[movie_id]
+            sq_error += (movie.hypothesis(user) - float(user.movie_ratings[movie_id]))**2
+            m += 1
+    return math.sqrt(sq_error/m)
+
 #===============================================================================
 #=============================Derivatives=======================================
 # wrt = with respect to
@@ -197,7 +209,7 @@ def derivative_norm(dj):
     return norm
 
 #===============================================================================
-def content_based_gd(movies, users, a, l):
+def content_based_grad_descent(movies, users, a, l):
     iteration = 0
     while True:
         if iteration%100 == 0:
@@ -224,11 +236,21 @@ def content_based_gd(movies, users, a, l):
         if iteration > 5000:
             return True
 
-def gradient_descent(movies, users, a, l):
+def batch_gradient_descent(movies, users, a, l):
     iteration = 0
+    log = []
     while True:
-        if iteration%1 == 0:
-            print "Iteration #%s - cost: %s" % (iteration, cost_function(movies, users, l))
+        if iteration%50 == 0:
+            record = []
+            cost = cost_function(movies, users, l)
+            training_error = train_rmse(users, movies)
+            cv_error = cv_rmse(users, movies)
+            print "Iteration #%s - cost: %s" % (iteration, cost)
+            record.append(iteration)
+            record.append(cost)
+            record.append(training_error)
+            record.append(cv_error)
+            log.append(record)
         # Compute partial derivatives
         dj_dmovie = dict()
         for movie_id in movies:
@@ -244,8 +266,6 @@ def gradient_descent(movies, users, a, l):
             dj_duser[user.id] = []
             for k in range(0, n):
                 dj_duser[user.id].append(dj_wrt_user_theta_k(user, movies, l, k))
-        if iteration%100 == 0:
-            print "Iteration #%s - derivative norm => dj_dmovie: %s, dj_duser: %s" % (iteration, derivative_norm(dj_dmovie), derivative_norm(dj_duser))
         # Apply gradient_descent
         for movie_id in dj_dmovie:
             dj_dx = dj_dmovie[movie_id]
@@ -261,7 +281,7 @@ def gradient_descent(movies, users, a, l):
                 user.theta[k] = user.theta[k] - (a*dj_dtheta[k])
         iteration +=1
         if iteration > 1500:
-            return True
+            return log
 
 def stochastic_gradient_descent(movies, users, a, l):
     iteration = 0
@@ -309,6 +329,16 @@ def write_feature_to_csv(movies):
     for movie_id in movies:
         movie = movies[movie_id]
         csv_writer.writerow([movie_id] + movie.feature)
+    return True
+
+def write_rmse_to_csv(log):
+    log_csv = open("./knn-5k-users/log.csv", 'wt')
+    csv_writer = csv.writer(log_csv)
+    header = ['iteration','costFunction', 'trainingRmse', 'cvRmse']
+    csv_writer.writerow(header)
+    for k in range(0, len(log)):
+        csv_writer.writerow(log[k])
+    return True
 
 movie_set = './knn-5k-users/movies.csv'
 rating_set = './knn-5k-users/ratings.csv'
@@ -324,51 +354,23 @@ movies = dict()
 for movie_id in movie_set:
     movies[movie_id] = Movie(movie_id, movie_set[movie_id]["title"], movie_set[movie_id]["viewers"])
 
-train_users = dict()
+users = dict()
 for user_id in user_set:
-    train_users[user_id] = TestUser(user_id, user_set[user_id])
-
-# Take 100 users from users for cross validations
-# cv_ratings = 0
-# cv_users = dict()
-# cv_user_ids = sample(train_users, 50)
-# for user_id in cv_user_ids:
-#     cv_users[user_id] = TestUser(user_id, user_set[user_id])
-#     cv_ratings += len(cv_users[user_id].movie_ratings)
-#     train_users.pop(user_id)
-#     for movie_id in movies:
-#         if user_id in movies[movie_id].viewers:
-#             movies[movie_id].viewers.remove(user_id)
-#
-# test_ratings = 0
-# test_users = dict()
-# test_user_ids = sample(train_users, 50)
-# for user_id in test_user_ids:
-#     test_users[user_id] = TestUser(user_id, user_set[user_id])
-#     test_ratings += len(test_users[user_id].movie_ratings)
-#     train_users.pop(user_id)
-#     for movie_id in movies:
-#         if user_id in movies[movie_id].viewers:
-#             movies[movie_id].viewers.remove(user_id)
-# print "Number of CV Ratings: %s, Number of Test Ratings: %s" % (cv_ratings, test_ratings)
+    users[user_id] = TestUser(user_id, user_set[user_id])
 
 learning_rate = 0.15
 regularized_factor = 0.1
-print "Average Sq Error: %s" % sq_error(train_users, movies, regularized_factor)
-gradient_descent(movies, train_users, learning_rate, regularized_factor)
-print "Average Sq Error: %s" % sq_error(train_users, movies, regularized_factor)
-for user_id in train_users:
-    user = train_users[user_id]
+print "Train RMSE: %s" % train_rmse(users, movies)
+print "CV RMSE: %s" % cv_rmse(users, movies)
+log = batch_gradient_descent(movies, users, learning_rate, regularized_factor)
+print "(After gradient_descent) Train RMSE: %s" % train_rmse(users, movies)
+print "(After gradient_descent) CV RMSE: %s" % cv_rmse(users, movies)
+write_rmse_to_csv(log)
+for user_id in users:
+    user = users[user_id]
     for movie_id in user.hidden_ratings:
         print "Title: %s" % movies[movie_id].title
         print "=> # of viewers: %s, rating: %s, prediction: %s" % (len(movies[movie_id].viewers), user.hidden_ratings[movie_id], movies[movie_id].hypothesis(user))
+pdb.set_trace()
 write_feature_to_csv(movies)
-
-# print "Before training - cv sq. error: %s" % sq_error(cv_users, movies, regularized_factor)
-# content_based_gd(movies, cv_users, learning_rate, regularized_factor)
-# print "After training - cv sq. error: %s" % sq_error(cv_users, movies, regularized_factor)
-#
-# print "Before training - test sq. error: %s" % sq_error(test_users, movies, regularized_factor)
-# content_based_gd(movies, test_users, learning_rate, regularized_factor)
-# print "After training - test sq. error: %s" % sq_error(test_users, movies, regularized_factor)
 print "Done"
