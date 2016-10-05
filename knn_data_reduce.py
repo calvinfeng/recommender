@@ -9,7 +9,7 @@ LINKS_SET = './ml-latest/links.csv'
 def reduce_movies_file(movie_set):
     movies_csv = open(MOVIE_SET)
     csv_reader = csv.reader(movies_csv)
-    resized_movies_csv = open('./knn-500-users/movies.csv', 'wt')
+    resized_movies_csv = open('./knn-10k-users/movies.csv', 'wt')
     csv_writer = csv.writer(resized_movies_csv)
     csv_writer.writerow(('movieId', 'title', 'year', 'genres'))
     write_count = 0
@@ -28,7 +28,7 @@ def reduce_movies_file(movie_set):
 def reduce_ratings_file(user_set):
     ratings_csv = open(RATING_SET)
     csv_reader = csv.reader(ratings_csv)
-    resized_ratings_csv = open('./knn-500-users/ratings.csv', 'wt')
+    resized_ratings_csv = open('./knn-10k-users/ratings.csv', 'wt')
     csv_writer = csv.writer(resized_ratings_csv)
     csv_writer.writerow(('userId', 'movieId', 'rating', 'timestamp'))
     write_count = 0
@@ -45,7 +45,7 @@ def reduce_ratings_file(user_set):
 def reduce_links_file(movie_set):
     links_csv = open(LINKS_SET)
     csv_reader = csv.reader(links_csv)
-    resized_links_csv = open('./knn-500-users/links.csv', 'wt')
+    resized_links_csv = open('./knn-10k-users/links.csv', 'wt')
     csv_writer = csv.writer(resized_links_csv)
     csv_writer.writerow(('movieId', 'imdbId', 'tmdbId'))
     write_count = 0
@@ -60,11 +60,11 @@ full_movies = csv_loader.load_movies(MOVIE_SET, RATING_SET)
 full_users = csv_loader.load_users(RATING_SET)
 
 user_id_set = set()
-for i in range(1, 150000):
+for i in range(1, 100000):
     user_id = str(i)
-    if len(full_users[user_id]) >= 50 and len(full_users[user_id]) <= 100:
+    if len(full_users[user_id]) >= 100 and len(full_users[user_id]) <= 200:
         user_id_set.add(str(user_id))
-    if len(user_id_set) == 500:
+    if len(user_id_set) == 10000:
          break
 # There are 14839 people (who rated between 50 and 100 movies) in first 100,000 people
 # There are 22104 people (who rated between 50 and 100 movies) in first 150,000 people

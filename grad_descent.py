@@ -22,26 +22,26 @@ class Movie:
     def hypothesis(self, user):
         return numpy.dot(self.feature, user.theta)
 
+# class User:
+#     def __init__(self, user_id, movie_ratings):
+#         self.id = user_id
+#         self.movie_ratings = movie_ratings
+#         self.theta = self.random_init(8)
+#
+#     def random_init(self, size):
+#         preference_vector = []
+#         while len(preference_vector) < size:
+#             preference_vector.append(random())
+#         return preference_vector
+
 class User:
-    def __init__(self, user_id, movie_ratings):
-        self.id = user_id
-        self.movie_ratings = movie_ratings
-        self.theta = self.random_init(8)
-
-    def random_init(self, size):
-        preference_vector = []
-        while len(preference_vector) < size:
-            preference_vector.append(random())
-        return preference_vector
-
-class TestUser:
     def __init__(self, user_id, movie_ratings):
         self.id = user_id
         self.theta = self.random_init(8)
         self.process(movie_ratings)
 
     def random_init(self, size):
-        # Give TestUser a bias term, which is 1
+        # Give User a bias term, which is 1
         preference_vector = [1]
         while len(preference_vector) < size:
             preference_vector.append(random())
@@ -340,8 +340,8 @@ def write_rmse_to_csv(log):
         csv_writer.writerow(log[k])
     return True
 
-movie_set = './knn-5k-users/movies.csv'
-rating_set = './knn-5k-users/ratings.csv'
+movie_set = './knn-10k-users/movies.csv'
+rating_set = './knn-10k-users/ratings.csv'
 # rating_cv_set = './gd-10-movies/ratings_cv.csv'
 # rating_test_set = './gd-10-movies/ratings_test.csv'
 
@@ -356,7 +356,7 @@ for movie_id in movie_set:
 
 users = dict()
 for user_id in user_set:
-    users[user_id] = TestUser(user_id, user_set[user_id])
+    users[user_id] = User(user_id, user_set[user_id])
 
 learning_rate = 0.15
 regularized_factor = 0.1
