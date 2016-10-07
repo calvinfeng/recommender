@@ -320,7 +320,7 @@ def stochastic_gradient_descent(movies, users, a, l):
             return True
 
 def write_feature_to_csv(movies):
-    feature_csv = open('./knn-5k-users/features.csv', 'wt')
+    feature_csv = open('./knn-10k-users/features.csv', 'wt')
     csv_writer = csv.writer(feature_csv)
     header = ['movieId']
     for k in range(0, 8):
@@ -332,7 +332,7 @@ def write_feature_to_csv(movies):
     return True
 
 def write_rmse_to_csv(log):
-    log_csv = open("./knn-5k-users/log.csv", 'wt')
+    log_csv = open("./knn-10k-users/log.csv", 'wt')
     csv_writer = csv.writer(log_csv)
     header = ['iteration','costFunction', 'trainingRmse', 'cvRmse']
     csv_writer.writerow(header)
