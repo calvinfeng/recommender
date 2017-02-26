@@ -6,3 +6,5 @@ gd-10-movies
 *.pyc
 *.DS_Store
 *.byebug_history
+*.idea
+*.iml
