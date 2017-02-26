@@ -1,2 +1,4 @@
 # Ignore large data set #
-ml-latest
+*.pyc
+data
+gd-10-movies
