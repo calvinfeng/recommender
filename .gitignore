@@ -1,4 +1,8 @@
+
 # Ignore large data set #
-*.pyc
 data
 gd-10-movies
+
+*.pyc
+*.DS_Store
+*.byebug_history
