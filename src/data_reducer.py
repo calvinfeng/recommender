@@ -44,17 +44,16 @@ class DataReducer:
                 if row[0].isdigit():
                     rating_count += 1
                     user_id, movie_id, rating = row[0], row[1], row[2]
-                    if movie_dict[movie_id].get('ratings'):
-                        movie_dict[movie_id]['viewers'].append(user_id)
-                        movie_dict[movie_id]['ratings'].append(rating)
+                    if movie_dict[movie_id].get('user_ratings'):
+                        movie_dict[movie_id]['user_ratings'][user_id] = rating
                     else:
-                        movie_dict[movie_id]['viewers'] = [user_id]
-                        movie_dict[movie_id]['ratings'] = [rating]
+                        movie_dict[movie_id]['user_ratings'] = { user_id: rating }
 
                     if user_dict.get('user_id'):
-                        user_dict[user_id][movie_id] = rating
+                        user_dict[user_id]['movie_ratings'][movie_id] = rating
                     else:
-                        user_dict[user_id] = {movie_id: rating}
+                        user_dict[user_id] = dict()
+                        user_dict[user_id]['movie_ratings'] = { movie_id: rating }
 
             # Store them
             self._users = user_dict
@@ -73,10 +72,11 @@ class DataReducer:
                 if row[0].isdigit():
                     rating_count += 1
                     user_id, movie_id, rating = row[0], row[1], row[2]
-                    if users.get('user_id'):
-                        users[user_id][movie_id] = rating
+                    if user_dict.get('user_id'):
+                        user_dict[user_id]['movie_ratings'][movie_id] = rating
                     else:
-                        users[user_id] = {movie_id: rating}
+                        user_dict[user_id] = dict()
+                        user_dict[user_id]['movie_ratings'] = { movie_id: rating }
             self._users = user_dict
             self.rating_count = rating_count
 
@@ -169,18 +169,18 @@ if __name__ == '__main__':
 
     for movie_id in reducer.movies:
         movie = reducer.movies[movie_id]
-        if movie.get('ratings') is None:
+        if movie.get('user_ratings') is None:
             print '%s has no ratings' % movie['title']
-        elif len(movie['ratings']) > 5000:
-            print '%s has %s ratings' % (movie['title'], len(movie['ratings']))
+        elif len(movie['user_ratings']) > 5000:
+            print '%s has %s ratings' % (movie['title'], len(movie['user_ratings']))
 
     for user_id in reducer.users:
         user = reducer.users[user_id]
         if len(user) > 300:
-            print 'User %s has %s ratings' % (user_id, len(user))
+            print 'User %s has %s ratings' % (user_id, len(user['movie_ratings']))
 
     rating_count = reducer.rating_count
     print 'Total rating count: %s' % (rating_count)
 
     # Starting user_id is 200,000 and we are exporting 20,000 users
-    print reducer.export_training_set(200000, 20000, '../data/20k-users')
+    # print reducer.export_training_set(200000, 20000, '../data/20k-users')
