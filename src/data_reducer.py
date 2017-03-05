@@ -1,4 +1,3 @@
-
 # Project: Recommender System
 # Author(s): Calvin Feng
 
@@ -14,7 +13,7 @@ class DataReducer:
         self.movies_file_path = movies_file_path
         self.ratings_file_path = ratings_file_path
         self.links_file_path = links_file_path
-        
+
         # Properties
         self._movies = None
         self._users = None
@@ -46,11 +45,11 @@ class DataReducer:
                     rating_count += 1
                     user_id, movie_id, rating = row[0], row[1], row[2]
                     if movie_dict[movie_id].get('ratings'):
-                        movie_dict[movie_id]['ratings'].append(rating)
                         movie_dict[movie_id]['viewers'].append(user_id)
+                        movie_dict[movie_id]['ratings'].append(rating)
                     else:
-                        movie_dict[movie_id]['ratings'] = [rating]
                         movie_dict[movie_id]['viewers'] = [user_id]
+                        movie_dict[movie_id]['ratings'] = [rating]
 
                     if user_dict.get('user_id'):
                         user_dict[user_id][movie_id] = rating
@@ -83,6 +82,19 @@ class DataReducer:
 
         return self._users
 
+    '''
+    API for saving training_set or test_set
+    '''
+    def export_training_set(self, starting_user_id, max_user_count, dir):
+        is_rating_export_successful = self._export_rating_training_set(starting_user_id, max_user_count, dir)
+        is_movie_export_successful = self._export_movie_training_set(dir)
+        is_link_export_successful = self._export_links_training_set(dir)
+        if (is_rating_export_successful and is_movie_export_successful) and is_link_export_successful:
+            print 'Success!'
+
+    '''
+    Private methods
+    '''
     # Set constraint on number of users
     def _export_rating_training_set(self, starting_user_id, max_user_count, dir):
         csv = reader(open(self.ratings_file_path))
@@ -151,12 +163,6 @@ class DataReducer:
                 return True
             return False
 
-    def export_training_set(self, starting_user_id, max_user_count, dir):
-        is_rating_export_successful = self._export_rating_training_set(starting_user_id, max_user_count, dir)
-        is_movie_export_successful = self._export_movie_training_set(dir)
-        is_link_export_successful = self._export_links_training_set(dir)
-        if (is_rating_export_successful and is_movie_export_successful) and is_link_export_successful:
-            print 'Success!'
 
 if __name__ == '__main__':
     reducer = DataReducer('../data/full/movies.csv', '../data/full/ratings.csv', '../data/full/links.csv')
@@ -176,4 +182,5 @@ if __name__ == '__main__':
     rating_count = reducer.rating_count
     print 'Total rating count: %s' % (rating_count)
 
+    # Starting user_id is 200,000 and we are exporting 20,000 users
     print reducer.export_training_set(200000, 20000, '../data/20k-users')

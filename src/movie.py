@@ -1,10 +1,15 @@
+# Project: Recommender System
+# Author(s): Calvin Feng
+
 from numpy import dot
+from random import random
 
 class Movie:
-    def __init__(self, movie_id, title, viewers):
+    def __init__(self, movie_id, title, viewers, ratings):
         self.id = movie_id
         self.title = title
         self.viewers = viewers
+        self.ratings = ratings
         self.feature = self.random_init(8)
 
     def random_init(self, size):
