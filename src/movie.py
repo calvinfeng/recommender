@@ -5,11 +5,12 @@ from numpy import dot
 from random import random
 
 class Movie:
-    def __init__(self, movie_id, title, user_ratings):
+    def __init__(self, movie_id, title, user_ratings, feature_length):
         self.id = movie_id
         self.title = title
         self.user_ratings = user_ratings
-        self.feature = self.random_init(8)
+        self.feature_length = feature_length
+        self.feature = self.random_init(feature_length)
 
     @property
     def viewer_ids(self):

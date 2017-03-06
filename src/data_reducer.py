@@ -21,8 +21,6 @@ class DataReducer:
         self._user_training_set = None
         self._movie_training_set = None
 
-        self._user_test_set = None
-        self._movie_test_set = None
 
     @property
     def movies(self) :
@@ -49,7 +47,7 @@ class DataReducer:
                     else:
                         movie_dict[movie_id]['user_ratings'] = { user_id: rating }
 
-                    if user_dict.get('user_id'):
+                    if user_dict.get(user_id):
                         user_dict[user_id]['movie_ratings'][movie_id] = rating
                     else:
                         user_dict[user_id] = dict()
@@ -72,7 +70,7 @@ class DataReducer:
                 if row[0].isdigit():
                     rating_count += 1
                     user_id, movie_id, rating = row[0], row[1], row[2]
-                    if user_dict.get('user_id'):
+                    if user_dict.get(user_id):
                         user_dict[user_id]['movie_ratings'][movie_id] = rating
                     else:
                         user_dict[user_id] = dict()
@@ -104,19 +102,21 @@ class DataReducer:
             output.writerow(('userId', 'movieId', 'rating', 'timestamp'))
             write_count = 0
             for row in csv:
+                if len(user_training_set) == max_user_count and row[0] not in user_training_set:
+                    self._movie_training_set = movie_training_set
+                    self._user_training_set = user_training_set
+                    print 'Exported rating count: %s from %s users' % (write_count, len(self._user_training_set))
+                    return True
+
                 if row[0].isdigit():
                     user_id = row[0]
-                    if starting_user_id >= starting_user_id:
+                    if int(user_id) >= starting_user_id:
                         output.writerow((row[0], row[1], row[2], row[3]))
                         movie_training_set.add(row[1])
                         user_training_set.add(row[0])
                         write_count += 1
 
-                if len(user_training_set) >= max_user_count:
-                    self._movie_training_set = movie_training_set
-                    self._user_training_set = user_training_set
-                    print 'Exported rating count: %s from %s' % (write_count, len(self._user_training_set))
-                    return True
+
 
         self._movie_training_set = movie_training_set
         self._user_training_set = user_training_set
@@ -182,5 +182,12 @@ if __name__ == '__main__':
     rating_count = reducer.rating_count
     print 'Total rating count: %s' % (rating_count)
 
+
+
     # Starting user_id is 200,000 and we are exporting 20,000 users
     # print reducer.export_training_set(200000, 20000, '../data/20k-users')
+
+    # Test set is similar to training set
+    # print reducer.export_training_set(230000, 1000, '../data/1k-users')
+
+    print reducer.export_training_set(190000, 10, '../data/10-users')
