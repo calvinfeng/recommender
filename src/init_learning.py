@@ -11,13 +11,13 @@ svd_trainer.configure(0.1, 0.15, 8)
 
 print 'Before function optimization:'
 print 'Training RMSE: %s' % svd_trainer.training_rmse
-print 'CV RMSE: %s' % svd_trainer.cross_validation_rmse
+print 'CV RMSE: %s\n' % svd_trainer.cross_validation_rmse
 
 svd_trainer.batch_gradient_descent()
 
-print '\nAfter function optimization:'
+print 'After function optimization:'
 print 'Training RMSE: %s' % svd_trainer.training_rmse
-print 'CV RMSE: %s' % svd_trainer.cross_validation_rmse
+print 'CV RMSE: %s\n' % svd_trainer.cross_validation_rmse
 
 svd_tester = IncrementalSVDTester(
         '../data/10-users/training_ratings.csv',
@@ -27,8 +27,10 @@ svd_tester.configure(0.1, 0.15, 8)
 
 print 'Before function optimization:'
 print 'Training RMSE: %s' % svd_tester.training_rmse
-print 'Test RMSE: %s' % svd_tester.test_rmse
+print 'Test RMSE: %s\n' % svd_tester.test_rmse
 
-print '\nAfter function optimization:'
+svd_tester.content_based_batch_gradient_descent()
+
+print 'After function optimization:'
 print 'Training RMSE: %s' % svd_tester.training_rmse
-print 'Test RMSE: %s' % svd_tester.test_rmse
+print 'Test RMSE: %s\n' % svd_tester.test_rmse

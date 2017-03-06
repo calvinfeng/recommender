@@ -176,7 +176,7 @@ class IncrementalSVDTrainer:
                     user.theta[k] = user.theta[k] - (self.learning_rate * dj_dtheta[k])
 
             current_iteration +=1
-
+        progress.complete()
         return log
 
     def export_feature_to_csv(output_filepath):
