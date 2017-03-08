@@ -13,11 +13,13 @@ print 'Before function optimization:'
 print 'Training RMSE: %s' % svd_trainer.training_rmse
 print 'CV RMSE: %s\n' % svd_trainer.cross_validation_rmse
 
-svd_trainer.batch_gradient_descent()
+# svd_trainer.batch_gradient_descent()
 
 print 'After function optimization:'
 print 'Training RMSE: %s' % svd_trainer.training_rmse
 print 'CV RMSE: %s\n' % svd_trainer.cross_validation_rmse
+
+svd_trainer.export_feature('../data/100-users')
 
 svd_tester = IncrementalSVDTester(
         '../data/10-users/training_ratings.csv',

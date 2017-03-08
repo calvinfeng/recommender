@@ -1,7 +1,6 @@
 
 # Ignore large data set #
 data
-gd-10-movies
 
 *.pyc
 *.DS_Store

@@ -21,7 +21,6 @@ class DataReducer:
         self._user_training_set = None
         self._movie_training_set = None
 
-
     @property
     def movies(self) :
         if self._movies is None:

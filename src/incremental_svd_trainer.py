@@ -179,19 +179,19 @@ class IncrementalSVDTrainer:
         progress.complete()
         return log
 
-    def export_feature_to_csv(output_filepath):
+    def export_feature(self, dir):
         feature_length = self.latent_factor_length
-        output = writer(open(output_filepath))
+        with open(dir + '/movie_features.csv', 'wt') as outfile:
+            output = writer(outfile)
 
-        header = ['movieId']
-        for k in range(0, feature_length):
-            header.append('f%s' % k)
+            header = ['movieId']
+            for k in range(0, feature_length):
+                header.append('f%s' % k)
+            output.writerow(header)
 
-        output.writerow(header)
-        for movie_id in self.movies:
-            movie = self.movies[movie_id]
-            output.write([movie.id] + movie.feature)
-
+            for movie_id in self.movies:
+                movie = self.movies[movie_id]
+                output.writerow([movie.id] + movie.feature)
         return True
 
 if __name__ == '__main__':
