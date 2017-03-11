@@ -3,6 +3,7 @@
 
 from csv import reader
 from math import sqrt
+from pdb import set_trace as debugger
 
 from user import User
 from progress import Progress
@@ -47,9 +48,10 @@ class IncrementalSVDTester:
         for user_id in self.users:
             user = self.users[user_id]
             for movie_id in user.movie_ratings:
-                movie = self.trained_movies[movie_id]
-                sq_error += (movie.hypothesis(user) - float(user.movie_ratings[movie_id]))**2
-                m += 1
+                if self.trained_movies.get(movie_id):
+                    movie = self.trained_movies[movie_id]
+                    sq_error += (movie.hypothesis(user) - float(user.movie_ratings[movie_id]))**2
+                    m += 1
 
         return sqrt(sq_error / m)
 

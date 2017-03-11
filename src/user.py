@@ -3,6 +3,7 @@
 
 from random import random, sample
 from pdb import set_trace as debugger
+from math import sqrt
 
 class User:
     def __init__(self, user_id, movie_ratings, preference_length, is_test_user=False):
@@ -69,5 +70,3 @@ class User:
         else:
             # Statistically insignificant thus I return 0 for similarity
             return 0
-
-    
