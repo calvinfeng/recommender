@@ -1,6 +1,9 @@
 
 # Ignore large data set #
-data
+full
+small
+100-users
+10-users
 
 *.pyc
 *.DS_Store

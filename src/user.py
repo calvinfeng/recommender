@@ -43,7 +43,7 @@ class User:
             avg = 0
             for movie_id in self.movie_ratings:
                 avg += float(self.movie_ratings[movie_id])
-            self._baseline_rating = avg
+            self._baseline_rating = avg / len(self.movie_ratings)
 
         return self._baseline_rating
 
@@ -56,7 +56,7 @@ class User:
             if other_user.movie_ratings.get(movie_id):
                 movies_seen_by_both.append(movie_id)
 
-        if len(movies_seen_by_both) >= 5:
+        if len(movies_seen_by_both) >= 20:
             for movie_id in movies_seen_by_both:
                 this_rating, other_rating = float(self.movie_ratings[movie_id]), float(other_user.movie_ratings[movie_id])
                 user_correlation += (this_rating - self.avg_rating)*(other_rating - other_user.avg_rating)

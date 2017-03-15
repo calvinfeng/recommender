@@ -7,6 +7,7 @@ from data_reducer import DataReducer
 from progress import Progress
 from math import sqrt
 from pdb import set_trace
+from random import uniform
 
 class KNearest:
 
@@ -32,8 +33,8 @@ class KNearest:
         for id in neighbor_ids:
             neighbor = self.users[id]
             sim = user.sim(neighbor)
-            if sim > 0.50 and neighbor.movie_ratings.get(movie.id):
-                score += sim * float(neighbor.movie_ratings[movie.id]) - float(neighbor.avg_rating)
+            if (sim > 0.70 or sim < -0.70)  and neighbor.movie_ratings.get(movie.id):
+                score += sim * (float(neighbor.movie_ratings[movie.id]) - float(neighbor.avg_rating))
                 sim_norm += abs(sim)
 
         if sim_norm == 0:
@@ -53,6 +54,10 @@ class KNearest:
                 if isinstance(predicted_rating, float):
                     sq_error += (self.hypothesis(user, movie) - float(user.hidden_ratings[movie_id]))**2
                     m += 1
+                #
+                # sq_error += (uniform(0.5, 5) - float(user.hidden_ratings[movie_id]))**2
+                # m += 1
+
 
         return sqrt(sq_error / m)
 
