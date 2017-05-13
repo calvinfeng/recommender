@@ -83,9 +83,9 @@ class DataReducer:
     API for saving training_set or test_set
     '''
     def export_training_set(self, starting_user_id, max_user_count, dir):
-        is_rating_export_successful = self._export_rating_training_set(starting_user_id, max_user_count, dir)
-        is_movie_export_successful = self._export_movie_training_set(dir)
-        is_link_export_successful = self._export_links_training_set(dir)
+        is_rating_export_successful = self._export_movie_ratings(starting_user_id, max_user_count, dir)
+        is_movie_export_successful = self._export_movies(dir)
+        is_link_export_successful = self._export_movie_links(dir)
         if (is_rating_export_successful and is_movie_export_successful) and is_link_export_successful:
             print 'Success!'
 
@@ -93,7 +93,7 @@ class DataReducer:
     Private methods
     '''
     # Set constraint on number of users
-    def _export_rating_training_set(self, starting_user_id, max_user_count, dir):
+    def _export_movie_ratings(self, starting_user_id, max_user_count, dir):
         csv = reader(open(self.ratings_file_path))
         movie_training_set, user_training_set = Set(), Set()
         with open(dir + '/training_ratings.csv', 'wt') as outfile:
@@ -121,14 +121,14 @@ class DataReducer:
         self._user_training_set = user_training_set
         return False
 
-    def _export_movie_training_set(self, dir):
+    def _export_movies(self, dir):
         if self._movie_training_set is None:
             return False
 
         csv = reader(open(self.movies_file_path))
         with open(dir + '/training_movies.csv', 'wt') as outfile:
             output = writer(outfile)
-            output.writerow(('movieId', 'title', 'year', 'genres'))
+            output.writerow(('movieId', 'title', 'year', 'popularity', 'genres'))
             write_count = 0
             for row in csv:
                 if row[0].isdigit():
@@ -138,14 +138,15 @@ class DataReducer:
                         year = title[len(title) - 5: len(title) - 1]
                         genres = row[2]
                         title = title[:len(title) - 6].strip()
-                        output.writerow((movie_id, title, year, genres))
+                        popularity = len(self.movies[movie_id]['user_ratings'])
+                        output.writerow((movie_id, title, year, popularity, genres))
                         write_count += 1
             if write_count == len(self._movie_training_set):
                 print 'Exported movie count: %s' % write_count
                 return True
             return False
 
-    def _export_links_training_set(self, dir):
+    def _export_movie_links(self, dir):
         if self._movie_training_set is None:
             return False
 
@@ -166,27 +167,25 @@ class DataReducer:
 if __name__ == '__main__':
     reducer = DataReducer('../data/full/movies.csv', '../data/full/ratings.csv', '../data/full/links.csv')
 
-    for movie_id in reducer.movies:
-        movie = reducer.movies[movie_id]
-        if movie.get('user_ratings') is None:
-            print '%s has no ratings' % movie['title']
-        elif len(movie['user_ratings']) > 5000:
-            print '%s has %s ratings' % (movie['title'], len(movie['user_ratings']))
-
-    for user_id in reducer.users:
-        user = reducer.users[user_id]
-        if len(user) > 300:
-            print 'User %s has %s ratings' % (user_id, len(user['movie_ratings']))
-
-    rating_count = reducer.rating_count
-    print 'Total rating count: %s' % (rating_count)
-
-
+    # for movie_id in reducer.movies:
+    #     movie = reducer.movies[movie_id]
+    #     if movie.get('user_ratings') is None:
+    #         print '%s has no ratings' % movie['title']
+    #     elif len(movie['user_ratings']) > 5000:
+    #         print '%s has %s ratings' % (movie['title'], len(movie['user_ratings']))
+    #
+    # for user_id in reducer.users:
+    #     user = reducer.users[user_id]
+    #     if len(user) > 300:
+    #         print 'User %s has %s ratings' % (user_id, len(user['movie_ratings']))
+    #
+    # rating_count = reducer.rating_count
+    # print 'Total rating count: %s' % (rating_count)
 
     # Starting user_id is 200,000 and we are exporting 20,000 users
-    # print reducer.export_training_set(200000, 20000, '../data/20k-users')
+    print reducer.export_training_set(200000, 20000, '../data/20k-users')
 
     # Test set is similar to training set
     # print reducer.export_training_set(230000, 1000, '../data/1k-users')
 
-    print reducer.export_training_set(190000, 10, '../data/10-users')
+    # print reducer.export_training_set(190000, 10, '../data/10-users')
